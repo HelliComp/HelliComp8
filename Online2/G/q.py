@@ -1,43 +1,34 @@
-n = int(input())
+import sys
+import numpy as np
 
-A = list(map(int, input().split()))
-B = list(map(int, input().split()))
+def solve(P, Q):
+    n = P.shape[0]
+    INF = 1 << 60
+    L = np.full(n + 1, INF, np.int64)
+    ind = np.argsort(Q)
+    for i in range(n):
+        p = P[i]
+        M = np.arange(p, n + 1, p)
+        idx = np.sort(ind[M - 1])
+        for d in idx[::-1]:
+            k = np.searchsorted(L, d)
+            L[k] = d
+    ans = np.searchsorted(L, INF)
+    return ans
 
-ind = [0] * (n + 1)
+def main():
+    n = int(input())
+    P = np.fromstring(input(), np.int64, sep=' ')
+    Q = np.fromstring(input(), np.int64, sep=' ')
+    print(solve(P, Q))
 
-for i in range(1, n + 1):
-    ind[B[i - 1]] = i
 
-V = []
-U = [0]
-
-for i in range(1, n + 1):
-    U.clear()
-    num = A[i - 1]
-    
-    for j in range(num, n + 1, num):
-        U.append(ind[j])
-    
-    U.sort(reverse=True)
-    V.extend(U)
-
-ans = 0
-
-for v in V:
-    if v > U[-1]:
-        U.append(v)
-    else:
-        index = 0
-        low, high = 0, len(U) - 1
-        
-        while low <= high:
-            mid = (low + high) // 2
-            if U[mid] >= v:
-                index = mid
-                low = mid + 1
-            else:
-                high = mid - 1
-        
-        U[index] = v
-
-print(len(U) - 1)
+if __name__ == '__main__':
+    if sys.argv[-1] == 'ONLINE_JUDGE':
+        from numba.pycc import CC
+        cc = CC('my_module')
+        cc.export('solve', 'i8(i8[:], i8[:])')(solve)
+        cc.compile()
+        exit()
+    from my_module import solve
+    main()
