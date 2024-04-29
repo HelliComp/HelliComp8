@@ -1,24 +1,56 @@
-from heapq import *
-from bisect import *
+# Pypy 3
 
-N = 200023
+from collections import deque
 
-n, D, A = map(int, input().split())
-monster = [list(map(int, input().split())) for _ in range(n)]
-monster.sort()
-ans = 0
-st = []
-sum = 0
-for i in range(n):
-    while st and st[0][0] < monster[i][0]:
-        _, h = heappop(st)
-        sum -= h
-    h = monster[i][1] - sum
-    if h <= 0:
-        continue
-    num = (h + A - 1) // A
-    damage = num * A
-    ans += num
-    sum += damage
-    heappush(st, (monster[i][0] + 2 * D, damage))
-print(ans)
+N = 1003
+INF = int(1e9)
+dx = [0, 0, 1, -1]
+dy = [1, -1, 0, 0]
+
+def is_ok(y, x):
+    return 1 <= y <= n and 1 <= x <= n
+
+def check(mid):
+    dist = [[INF] * (n+1) for _ in range(n+1)]
+    Q = deque()
+    
+    for i in range(1, n+1):
+        for j in range(1, n+1):
+            if A[i][j] <= mid:
+                dist[i][j] = 0
+                Q.append((i, j))
+    
+    while Q:
+        y, x = Q.popleft()
+        
+        for i in range(4):
+            nx = x + dx[i]
+            ny = y + dy[i]
+            
+            if is_ok(ny, nx) and dist[ny][nx] > dist[y][x] + 1:
+                dist[ny][nx] = dist[y][x] + 1
+                Q.append((ny, nx))
+    
+    for i in range(1, n+1):
+        for j in range(1, n+1):
+            if dist[i][j] > k:
+                return False
+    return True
+
+n, k = map(int, input().split())
+A = [[0] * (n+1) for _ in range(n+1)]
+
+for i in range(1, n+1):
+    A[i][1:] = map(int, input().split())
+
+if k >= 2 * (n - 1):
+    print(0)
+else:
+    l, r = 0, 1000
+    while r - l > 1:
+        mid = (l + r) // 2
+        if check(mid):
+            r = mid
+        else:
+            l = mid
+    print(r)
